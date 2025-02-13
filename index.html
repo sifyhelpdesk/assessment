@@ -35,7 +35,7 @@
         button:hover {
             background-color: #0056b3;
         }
-        #feedback {
+        #feedback, #score {
             margin-top: 10px;
             font-weight: bold;
         }
@@ -44,35 +44,61 @@
 <body>
     <div class="container">
         <h2>Online Assessment</h2>
-        <p id="question">What is the capital of France?</p>
+        <p id="question"></p>
         <input type="text" id="answer" placeholder="Type your answer here...">
         <button onclick="checkAnswer()">Submit</button>
         <p id="feedback"></p>
+        <p id="score">Score: 0</p>
         <button onclick="exportToExcel()">Export to Excel</button>
     </div>
 
     <script>
+        let questions = [
+            { question: "What is the capital of France?", answer: "paris" },
+            { question: "What is 5 + 3?", answer: "8" },
+            { question: "What is the largest planet in our solar system?", answer: "jupiter" }
+        ];
+        let currentQuestionIndex = 0;
+        let score = 0;
+
+        document.getElementById("question").textContent = questions[currentQuestionIndex].question;
+
         function checkAnswer() {
             const userAnswer = document.getElementById("answer").value.trim().toLowerCase();
-            const correctAnswer = "paris";
+            const correctAnswer = questions[currentQuestionIndex].answer;
             const feedback = document.getElementById("feedback");
             
             if (userAnswer === correctAnswer) {
                 feedback.textContent = "Correct! Well done.";
                 feedback.style.color = "green";
-                storeResult(userAnswer, true);
+                score++;
             } else {
                 feedback.textContent = "Incorrect. Try again!";
                 feedback.style.color = "red";
-                storeResult(userAnswer, false);
+            }
+            
+            storeResult(questions[currentQuestionIndex].question, userAnswer, userAnswer === correctAnswer);
+            document.getElementById("score").textContent = `Score: ${score}`;
+            
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            document.getElementById("answer").value = "";
+            currentQuestionIndex++;
+            
+            if (currentQuestionIndex < questions.length) {
+                document.getElementById("question").textContent = questions[currentQuestionIndex].question;
+            } else {
+                document.getElementById("question").textContent = "Assessment Complete!";
+                document.getElementById("answer").style.display = "none";
             }
         }
 
-        function storeResult(answer, isCorrect) {
+        function storeResult(question, answer, isCorrect) {
             let results = JSON.parse(localStorage.getItem("assessmentResults")) || [];
-            results.push({ answer: answer, correct: isCorrect, timestamp: new Date().toISOString() });
+            results.push({ question: question, answer: answer, correct: isCorrect, timestamp: new Date().toISOString() });
             localStorage.setItem("assessmentResults", JSON.stringify(results));
-            console.log("Results stored:", results);
         }
 
         function exportToExcel() {
@@ -82,9 +108,9 @@
                 return;
             }
             
-            let csvContent = "data:text/csv;charset=utf-8,Answer,Correct,Timestamp\n";
+            let csvContent = "data:text/csv;charset=utf-8,Question,Answer,Correct,Timestamp\n";
             results.forEach(row => {
-                csvContent += `${row.answer},${row.correct},${row.timestamp}\n`;
+                csvContent += `${row.question},${row.answer},${row.correct},${row.timestamp}\n`;
             });
             
             let encodedUri = encodeURI(csvContent);
