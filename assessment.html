@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Assessment</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+        .container {
+            max-width: 500px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        input, button, textarea {
+            width: 80%;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        button {
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #feedback {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Online Assessment</h2>
+        <p id="question"></p>
+        <div id="answerContainer"></div>
+        <button id="submitBtn" onclick="checkAnswer()">Submit</button>
+        <button id="prevBtn" onclick="prevQuestion()">Previous</button>
+        <button id="nextBtn" onclick="nextQuestion()">Next</button>
+        <p id="feedback"></p>
+    </div>
+
+    <script>
+        let questions = JSON.parse(localStorage.getItem("questions")) || [];
+        let currentQuestionIndex = 0;
+
+        function loadQuestion() {
+            if (questions.length > 0 && currentQuestionIndex < questions.length) {
+                let questionObj = questions[currentQuestionIndex];
+                document.getElementById("question").textContent = questionObj.question;
+                let answerContainer = document.getElementById("answerContainer");
+                answerContainer.innerHTML = "";
+
+                if (questionObj.type === "short") {
+                    answerContainer.innerHTML = '<textarea id="answer" placeholder="Type your answer here..." rows="3"></textarea>';
+                } else if (questionObj.type === "single" || questionObj.type === "multiple") {
+                    questionObj.options.forEach(option => {
+                        let inputType = questionObj.type === "single" ? "radio" : "checkbox";
+                        answerContainer.innerHTML += `<label><input type="${inputType}" name="answer" value="${option}"> ${option}</label><br>`;
+                    });
+                } else if (questionObj.type === "truefalse") {
+                    answerContainer.innerHTML = '<label><input type="radio" name="answer" value="true"> True</label><br>' +
+                                               '<label><input type="radio" name="answer" value="false"> False</label>';
+                }
+            } else {
+                document.getElementById("question").textContent = "Assessment Complete!";
+                document.getElementById("answerContainer").style.display = "none";
+                document.getElementById("submitBtn").style.display = "none";
+                document.getElementById("prevBtn").style.display = "none";
+                document.getElementById("nextBtn").style.display = "none";
+            }
+        }
+        loadQuestion();
+
+        function checkAnswer() {
+            const questionObj = questions[currentQuestionIndex];
+            let userAnswer = "";
+
+            if (questionObj.type === "short") {
+                userAnswer = document.getElementById("answer").value.trim();
+            } else {
+                let selectedOptions = Array.from(document.querySelectorAll("input[name='answer']:checked"))
+                                         .map(input => input.value);
+                userAnswer = questionObj.type === "single" ? selectedOptions[0] : selectedOptions;
+            }
+
+            const correctAnswer = questionObj.answer;
+            const feedback = document.getElementById("feedback");
+            
+            
+            setTimeout(nextQuestion, 400);
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                loadQuestion();
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                loadQuestion();
+            } else {
+                document.getElementById("question").textContent = "Assessment Complete!";
+                document.getElementById("answerContainer").style.display = "none";
+                document.getElementById("submitBtn").style.display = "none";
+                document.getElementById("prevBtn").style.display = "none";
+                document.getElementById("nextBtn").style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>

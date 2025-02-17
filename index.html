@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Online Assessment</title>
+    <title>Login - Online Assessment</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -11,21 +11,19 @@
             margin: 50px;
         }
         .container {
-            max-width: 500px;
+            max-width: 400px;
             margin: auto;
             padding: 20px;
             border: 1px solid #ccc;
             border-radius: 10px;
             box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
         }
-        input {
+        input, button {
             width: 80%;
             padding: 10px;
             margin-top: 10px;
         }
         button {
-            padding: 10px 20px;
-            margin-top: 10px;
             cursor: pointer;
             background-color: #007bff;
             color: white;
@@ -35,91 +33,38 @@
         button:hover {
             background-color: #0056b3;
         }
-        #feedback, #score {
-            margin-top: 10px;
+        #error {
+            color: red;
             font-weight: bold;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Online Assessment</h2>
-        <p id="question"></p>
-        <input type="text" id="answer" placeholder="Type your answer here...">
-        <button onclick="checkAnswer()">Submit</button>
-        <p id="feedback"></p>
-        <p id="score">Score: 0</p>
-        <button onclick="exportToExcel()">Export to Excel</button>
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Enter Username">
+        <input type="password" id="password" placeholder="Enter Password">
+        <button onclick="login()">Login as Admin</button>
+        <button onclick="startAssessment()">Continue as User</button>
+        <p id="error"></p>
     </div>
 
     <script>
-        let questions = [
-            { question: "What is the capital of France?", answer: "paris" },
-            { question: "What is 5 + 3?", answer: "8" },
-            { question: "What is the largest planet in our solar system?", answer: "jupiter" }
-        ];
-        let currentQuestionIndex = 0;
-        let score = 0;
-
-        document.getElementById("question").textContent = questions[currentQuestionIndex].question;
-
-        function checkAnswer() {
-            const userAnswer = document.getElementById("answer").value.trim().toLowerCase();
-            const correctAnswer = questions[currentQuestionIndex].answer;
-            const feedback = document.getElementById("feedback");
+        function login() {
+            const username = document.getElementById("username").value.trim();
+            const password = document.getElementById("password").value.trim();
             
-            if (userAnswer === correctAnswer) {
-                feedback.textContent = "Correct! Well done.";
-                feedback.style.color = "green";
-                score++;
+            if (username === "admin" && password === "admin123") {
+                localStorage.setItem("userRole", "admin");
+                window.location.href = "admin.html";
             } else {
-                feedback.textContent = "Incorrect. Try again!";
-                feedback.style.color = "red";
-            }
-            
-            storeResult(questions[currentQuestionIndex].question, userAnswer, userAnswer === correctAnswer);
-            document.getElementById("score").textContent = `Score: ${score}`;
-            
-            nextQuestion();
-        }
-
-        function nextQuestion() {
-            document.getElementById("answer").value = "";
-            currentQuestionIndex++;
-            
-            if (currentQuestionIndex < questions.length) {
-                document.getElementById("question").textContent = questions[currentQuestionIndex].question;
-            } else {
-                document.getElementById("question").textContent = "Assessment Complete!";
-                document.getElementById("answer").style.display = "none";
+                document.getElementById("error").textContent = "Invalid username or password!";
             }
         }
 
-        function storeResult(question, answer, isCorrect) {
-            let results = JSON.parse(localStorage.getItem("assessmentResults")) || [];
-            results.push({ question: question, answer: answer, correct: isCorrect, timestamp: new Date().toISOString() });
-            localStorage.setItem("assessmentResults", JSON.stringify(results));
-        }
-
-        function exportToExcel() {
-            let results = JSON.parse(localStorage.getItem("assessmentResults")) || [];
-            if (results.length === 0) {
-                alert("No data to export.");
-                return;
-            }
-            
-            let csvContent = "data:text/csv;charset=utf-8,Question,Answer,Correct,Timestamp\n";
-            results.forEach(row => {
-                csvContent += `${row.question},${row.answer},${row.correct},${row.timestamp}\n`;
-            });
-            
-            let encodedUri = encodeURI(csvContent);
-            let link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "assessment_results.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        function startAssessment() {
+            localStorage.setItem("userRole", "user");
+            window.location.href = "assessment.html";
         }
     </script>
 </body>
